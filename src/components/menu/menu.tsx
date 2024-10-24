@@ -27,15 +27,15 @@ export const NavigationMenu = forwardRef<
   ComponentPropsWithoutRef<"nav"> & { config: MenuNodeConfig[] }
 >(({ config, className, ...props }, forwardedRef) => {
   const [invalidFormat, setInvalidFormat] = useState<boolean>(false);
-  const [renderedBreadcrumbs, setRenderedBreadcrumbs] = useState<
+  const [renderedMenuNodes, setRenderedMenuNodes] = useState<
     Array<MenuNodeConfig | "ROOT">
   >(["ROOT"]);
-  const [breadcrumbsIndex, setBreadcrumbsIndex] = useState<number>(0);
+  const [renderedMenuIndex, setRenderedMenuIndex] = useState<number>(0);
   const [currentHeight, setCurrentHeight] = useState<number | null>(null);
   const [currentWidth, setCurrentWidth] = useState<number | null>(null);
   const [viewportOffset, setViewportOffset] = useState<number>(0);
-  const [windowResizing, setWindowResizing] = useState(false);
-  const [newNode, setNewNode] = useState<MenuNodeConfig | null>(null);
+  const [isWindowResizing, setIsWindowResizing] = useState(false);
+  const [newNodeToAdd, setNewNodeToAdd] = useState<MenuNodeConfig | null>(null);
   const listRefs = useRef<Array<HTMLUListElement | null>>([]);
   const navRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -62,9 +62,9 @@ export const NavigationMenu = forwardRef<
 
     const onWindowResize = () => {
       clearTimeout(timeout);
-      setWindowResizing(true); // Prevents the menu from animating while the window is resizing
+      setIsWindowResizing(true); // Prevents the menu from animating while the window is resizing
       timeout = setTimeout(() => {
-        setWindowResizing(false);
+        setIsWindowResizing(false);
       }, 200);
     };
 
@@ -75,45 +75,45 @@ export const NavigationMenu = forwardRef<
   }, []);
 
   useEffect(() => {
-    if (windowResizing) return;
+    if (isWindowResizing) return;
     if (!navRef.current) return;
     const navWidth = navRef.current?.offsetWidth || 0;
     setCurrentWidth(navWidth);
-  }, [windowResizing]);
+  }, [isWindowResizing]);
 
   // Update the menu height and viewport position when currentIndex changes
   useEffect(() => {
     if (!listRefs) return;
-    const newListRef = listRefs.current?.[breadcrumbsIndex];
+    const newListRef = listRefs.current?.[renderedMenuIndex];
     setCurrentHeight(newListRef?.offsetHeight || 0); // For height animation
 
     // Update the viewport position, to show the new list !
-    setViewportOffset(-breadcrumbsIndex * (currentWidth ?? 0));
-  }, [breadcrumbsIndex, currentWidth]);
+    setViewportOffset(-renderedMenuIndex * (currentWidth ?? 0));
+  }, [renderedMenuIndex, currentWidth]);
 
   // Do the job of navigate().
   // Trigerring the effect allow to remove breadcrumbsIndex dependency of navigate useCallback.
   useEffect(() => {
-    if (!newNode) return;
-    setBreadcrumbsIndex((c) => c + 1); // Moves the index
+    if (!newNodeToAdd) return;
+    setRenderedMenuIndex((c) => c + 1); // Moves the index
 
     // We override breadcrumbs deeper in the tree (kept in memory) with new node
-    setRenderedBreadcrumbs((b) => [
-      ...b.slice(0, breadcrumbsIndex + 1),
-      newNode,
+    setRenderedMenuNodes((b) => [
+      ...b.slice(0, renderedMenuIndex + 1),
+      newNodeToAdd,
     ]);
 
-    setNewNode(null); // Changes are done, reset the marker
-  }, [breadcrumbsIndex, newNode]);
+    setNewNodeToAdd(null); // Changes are done, reset the marker
+  }, [renderedMenuIndex, newNodeToAdd]);
 
   // Navigate to a specific node
   const navigate = useCallback((node: MenuNodeConfig) => {
-    setNewNode(node);
+    setNewNodeToAdd(node);
   }, []);
 
   // Navigate back to the previous node
   const navigateBack = useCallback(() => {
-    setBreadcrumbsIndex((c) => Math.max(0, c - 1));
+    setRenderedMenuIndex((c) => Math.max(0, c - 1));
   }, []);
 
   // Set the ref of a list to get their height
@@ -143,13 +143,14 @@ export const NavigationMenu = forwardRef<
             ref={viewportRef}
             className={cn(
               "flex flex-row relative",
-              !windowResizing && "transition-transform duration-300 ease-in-out"
+              !isWindowResizing &&
+                "transition-transform duration-300 ease-in-out"
             )}
             style={{
               transform: `translateX(${viewportOffset}px)`,
             }}
           >
-            {renderedBreadcrumbs.map((node, index) => (
+            {renderedMenuNodes.map((node, index) => (
               <span
                 key={`depth-${index}`}
                 ref={setListRefs(index)}
