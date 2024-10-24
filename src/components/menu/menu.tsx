@@ -1,5 +1,7 @@
 "use client";
 import { cn } from "@/app/utils/css-merge";
+import type { MenuItem } from "@/components/menu/menu.models";
+import { menuContentValidator } from "@/components/menu/menu.validators";
 import { ArrowRight } from "lucide-react";
 import React, {
   ComponentPropsWithoutRef,
@@ -7,35 +9,6 @@ import React, {
   forwardRef,
   useCallback,
 } from "react";
-import { z } from "zod";
-
-export type MenuItem = {
-  label: string;
-  href?: string;
-  children?: MenuItem[];
-};
-
-const existingStringValidator = z.string().trim().min(1);
-const menuContentValidator: z.ZodSchema<MenuItem[]> = z.lazy(() =>
-  z
-    .array(
-      z.union([
-        z
-          .object({
-            label: existingStringValidator,
-            href: existingStringValidator,
-          })
-          .strict(),
-        z
-          .object({
-            label: existingStringValidator,
-            children: menuContentValidator,
-          })
-          .strict(),
-      ])
-    )
-    .min(1)
-);
 
 export function NavigationMenu({ content }: { content: MenuItem[] }) {
   // Assert that the content is valid
@@ -116,7 +89,7 @@ const MenuItem = forwardRef<
       )}
     >
       <p className="grow text-[12px] leading-5 line-clamp-1">{item.label}</p>
-      {item.children && (
+      {item.subItems && (
         <ArrowRight
           className="w-3 h-3 text-[#B9B9B9] group-hover:text-[#323C3F]"
           size={12}

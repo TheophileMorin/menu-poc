@@ -1,31 +1,32 @@
-import { MenuItem, NavigationMenu } from "@/components/menu";
+import { NavigationMenu } from "@/components/menu/menu";
+import type { MenuItem } from "@/components/menu/menu.models";
 
 const menuContent: MenuItem[] = [
   { label: "designplox", href: "/designplox" },
   {
     label: "artists",
-    children: [
-      { label: "get your wings", children: [{ label: "idk", href: "/idk" }] },
+    subItems: [
+      { label: "get your wings", subItems: [{ label: "idk", href: "/idk" }] },
       {
         label: "hotel california",
-        children: [{ label: "idk", href: "/idk" }],
+        subItems: [{ label: "idk", href: "/idk" }],
       },
       {
         label: "physical graffiti",
-        children: [
+        subItems: [
           {
             label: "houses of the holy",
-            children: [{ label: "idk", href: "/houses-of-the-holy" }],
+            subItems: [{ label: "idk", href: "/houses-of-the-holy" }],
           },
           { label: "in my time of dying", href: "/in-my-time-of-dying" },
         ],
       },
     ],
   },
-  { label: "albums", children: [{ label: "idk", href: "/idk" }] },
-  { label: "songs", children: [{ label: "idk", href: "/idk" }] },
-  { label: "genres", children: [{ label: "idk", href: "/idk" }] },
-  { label: "settings", children: [{ label: "idk", href: "/idk" }] },
+  { label: "albums", subItems: [{ label: "idk", href: "/idk" }] },
+  { label: "songs", subItems: [{ label: "idk", href: "/idk" }] },
+  { label: "genres", subItems: [{ label: "idk", href: "/idk" }] },
+  { label: "settings", subItems: [{ label: "idk", href: "/idk" }] },
 ];
 
 export default function Home() {
