@@ -5,6 +5,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --onWhite1: #323232;
+  --onWhite2: #b9b9b9;
+  --surface1: #f7f7f7;
+  --accent: #d1edfb;
+  --accent2: #aedffb;
+  --error: #ff0000;
 }
 
 body {

@@ -9,14 +9,21 @@ const menuConfig: MenuNodeConfig[] = [
       { label: "get your wings", subNodes: [{ label: "idk", href: "/idk" }] },
       {
         label: "hotel california",
-        subNodes: [{ label: "idk", href: "/idk" }],
+        subNodes: [
+          { label: "idk1", href: "/idk1" },
+          { label: "idk2", href: "/idk2" },
+          { label: "idk3", href: "/idk3" },
+        ],
       },
       {
         label: "physical graffiti",
         subNodes: [
           {
             label: "houses of the holy",
-            subNodes: [{ label: "idk", href: "/houses-of-the-holy" }],
+            subNodes: [
+              { label: "idk21", href: "/idk21" },
+              { label: "idk22", href: "/idk22" },
+            ],
           },
           { label: "in my time of dying", href: "/in-my-time-of-dying" },
         ],
