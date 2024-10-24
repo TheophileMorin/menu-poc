@@ -1,6 +1,12 @@
 "use client";
+import { cn } from "@/app/utils/css-merge";
 import { ArrowRight } from "lucide-react";
-import React from "react";
+import React, {
+  ComponentPropsWithoutRef,
+  ElementRef,
+  forwardRef,
+  useCallback,
+} from "react";
 import { z } from "zod";
 
 export type MenuItem = {
@@ -35,9 +41,9 @@ export function NavigationMenu({ content }: { content: MenuItem[] }) {
   // Assert that the content is valid
   menuContentValidator.parse(content);
 
-  const handleClick = (item: MenuItem): void => {
+  const handleClick = useCallback((item: MenuItem): void => {
     console.log(item);
-  };
+  }, []);
 
   return (
     <ul className="w-[420px] flex flex-col">
@@ -45,23 +51,70 @@ export function NavigationMenu({ content }: { content: MenuItem[] }) {
         <MenuItem
           item={item}
           key={`${item.label}-${index}`}
-          handleClick={() => handleClick(item)}
+          handleClick={handleClick}
         />
       ))}
     </ul>
   );
 }
 
-function MenuItem({
-  item,
-  handleClick,
-}: {
-  item: MenuItem;
-  handleClick: () => void;
-}) {
+/**
+ * MenuItemWrapper is a wrapper around the MenuItem component
+ * that handles the correct way to interract with the item.
+ */
+const MenuItemWrapper = forwardRef<
+  ElementRef<"li">,
+  ComponentPropsWithoutRef<"li"> & {
+    item: MenuItem;
+    handleClick: (item: MenuItem) => void;
+  }
+>(({ item, handleClick, className, children, ...props }, ref) => {
   const isLink = !!item.href;
-  const content = (
-    <>
+  return (
+    <li ref={ref} {...props}>
+      {isLink ? (
+        <a
+          href={item.href}
+          className={className}
+          aria-label={`navigate to ${item.label}`}
+        >
+          {children}
+        </a>
+      ) : (
+        <button
+          className={className}
+          onClick={() => handleClick(item)}
+          aria-label={`open sub-menu ${item.label}`}
+        >
+          {children}
+        </button>
+      )}
+    </li>
+  );
+});
+MenuItemWrapper.displayName = "MenuItemWrapper";
+
+/**
+ * MenuItem is a UI component that represents a single item in the menu.
+ */
+const MenuItem = forwardRef<
+  ElementRef<typeof MenuItemWrapper>,
+  ComponentPropsWithoutRef<typeof MenuItemWrapper> & {
+    item: MenuItem;
+    handleClick: (item: MenuItem) => void;
+  }
+>(({ item, handleClick, className, ...props }, ref) => {
+  return (
+    <MenuItemWrapper
+      {...props}
+      item={item}
+      handleClick={handleClick}
+      ref={ref}
+      className={cn(
+        className,
+        "group h-[48px] w-full flex items-center text-left cursor-pointer p-[14px] bg-[#F7F7F7] text-[#323232] hover:bg-[#D1EDFB] hover:text-[#323232] active:bg-[#AEDFFB] transition-colors duration-200"
+      )}
+    >
       <p className="grow text-[12px] leading-5 line-clamp-1">{item.label}</p>
       {item.children && (
         <ArrowRight
@@ -69,21 +122,7 @@ function MenuItem({
           size={12}
         />
       )}
-    </>
+    </MenuItemWrapper>
   );
-  const itemClass =
-    "group h-[48px] w-full flex items-center text-left cursor-pointer p-[14px] bg-[#F7F7F7] text-[#323232] hover:bg-[#D1EDFB] hover:text-[#323232] active:bg-[#AEDFFB] transition-colors duration-200";
-  return (
-    <li>
-      {isLink ? (
-        <a href={item.href} className={itemClass}>
-          {content}
-        </a>
-      ) : (
-        <button className={itemClass} onClick={handleClick}>
-          {content}
-        </button>
-      )}
-    </li>
-  );
-}
+});
+MenuItem.displayName = "MenuItem";
