@@ -50,7 +50,15 @@ export const NavigationMenu = forwardRef<
       setInvalidFormat(true);
       console.error(menuContent.error); // Adapt to use error reporting
     } else {
+      // On config change, reset the menu
       setInvalidFormat(false);
+      setRenderedMenuNodes(["ROOT"]);
+      setRenderedMenuIndex(0);
+      setCurrentHeight(null);
+      setCurrentWidth(null);
+      setViewportOffset(0);
+      setIsWindowResizing(false);
+      setNewNodeToAdd(null);
     }
   }, [config]);
 
