@@ -8,58 +8,144 @@ import React, {
   ElementRef,
   forwardRef,
   useCallback,
+  useEffect,
   useLayoutEffect,
+  useRef,
   useState,
 } from "react";
 
-export function NavigationMenu({ config }: { config: MenuNodeConfig[] }) {
+export function NavigationMenu({
+  config,
+  className,
+}: {
+  config: MenuNodeConfig[];
+  className?: string;
+}) {
   const [invalidFormat, setInvalidFormat] = useState<boolean>(false);
-  const [selectedNode, setSelectedNode] = useState<MenuNodeConfig | null>(null);
+  const [renderedBreadcrumbs, setRenderedBreadcrumbs] = useState<
+    Array<MenuNodeConfig | null>
+  >([null]);
+  const [breadcrumbsIndex, setBreadcrumbsIndex] = useState<number>(0);
+  const [currentHeight, setCurrentHeight] = useState<number | null>(null);
+  const [viewportOffset, setViewportOffset] = useState<number>(0);
+  const listRefs = useRef<Array<HTMLUListElement | null>>([]);
+  const navRef = useRef<HTMLDivElement>(null);
 
-  // Used useLayoutEffect to prevent rendering an unvalid menu configuration
+  // Validate input config
   useLayoutEffect(() => {
-    // Assert that the content is valid
+    // PS: Used useLayoutEffect here to prevent rendering an unvalid menu configuration
     const menuContent = menuNodeValidator.safeParse(config);
     if (!menuContent.success) {
       setInvalidFormat(true);
-      console.error(menuContent.error);
+      console.error(menuContent.error); // Adapt to
     } else {
       setInvalidFormat(false);
     }
   }, [config]);
 
-  const clickOnNode = useCallback((node: MenuNodeConfig): void => {
-    setSelectedNode(node); // TODO
-  }, []);
+  // Update the menu height and the menu viewport position when currentIndex changes
+  useEffect(() => {
+    // Update height to the new list height
+    if (!listRefs) return;
+    const currentRef = listRefs.current?.[breadcrumbsIndex];
+    setCurrentHeight(currentRef?.offsetHeight || 0);
+
+    // Update the viewport position
+    const navWidth = navRef.current?.offsetWidth || 0;
+    setViewportOffset(-breadcrumbsIndex * navWidth);
+  }, [breadcrumbsIndex]);
+
+  const clickOnNode = useCallback(
+    (node: MenuNodeConfig): void => {
+      // TODO prevent multiple clicks hell
+      // Update current index for next rendering
+      setBreadcrumbsIndex((c) => c + 1);
+      // We erase the end of breadcrumbs based on currentIndex and add the new node
+      setRenderedBreadcrumbs((b) =>
+        [...b].slice(0, breadcrumbsIndex + 1).concat([node])
+      );
+    },
+    [breadcrumbsIndex]
+  );
   const clickOnPrevious = useCallback((): void => {
-    setSelectedNode(null); // TODO
+    // We just update the viewport
+    setBreadcrumbsIndex((c) => (c === 0 ? 0 : c + -1));
   }, []);
 
   if (invalidFormat)
     return (
-      <ul className="w-[420px] flex flex-col items-center justify-center">
-        <li className="text-red-600 w-fit">Invalid menu configuration :/</li>
-      </ul>
+      <nav
+        className={cn(
+          "flex flex-col items-center justify-center z-10 text-red-600",
+          className
+        )}
+      >
+        Invalid menu configuration :/
+      </nav>
     );
 
   return (
-    <nav className="w-[420px]">
-      <ul className="flex flex-col">
-        {!!selectedNode && <MenuPreviousNode handleClick={clickOnPrevious} />}
-        {(selectedNode?.subNodes || config).map(
-          (node: MenuNodeConfig, index: number) => (
-            <MenuNode
-              node={node}
-              key={`${node.label}-${index}`}
-              handleClick={clickOnNode}
-            />
-          )
-        )}
-      </ul>
+    <nav
+      className={cn(
+        "z-10 overflow-hidden",
+        "transition-height duration-300 ease-in-out",
+        className
+      )}
+      ref={navRef}
+      style={{ height: currentHeight ?? "initial" }}
+    >
+      <div
+        className="flex flex-row relative transition-transform duration-300 ease-in-out"
+        style={{
+          transform: `translateX(${viewportOffset}px)`,
+        }}
+      >
+        {renderedBreadcrumbs.map((node, index) => (
+          <MenuNodeList
+            key={`depth-${index}`}
+            ref={(el) => {
+              (listRefs.current ?? [])[index] = el;
+            }}
+            className={cn("min-w-full h-fit")}
+            isRoot={node === null}
+            nodes={node === null ? config : node.subNodes ?? []}
+            handleClick={clickOnNode}
+            handlePreviousClick={clickOnPrevious}
+          />
+        ))}
+      </div>
     </nav>
   );
 }
 
+const MenuNodeList = forwardRef<
+  ElementRef<"ul">,
+  ComponentPropsWithoutRef<"ul"> & {
+    isRoot: boolean;
+    nodes: MenuNodeConfig[];
+    handleClick: (node: MenuNodeConfig) => void;
+    handlePreviousClick: () => void;
+  }
+>(
+  (
+    { isRoot, nodes, handleClick, handlePreviousClick, className, ...props },
+    ref
+  ) => {
+    return (
+      <ul {...props} ref={ref} className={cn("flex flex-col", className)}>
+        {!isRoot && <MenuPreviousNode handleClick={handlePreviousClick} />}
+        {nodes.map((node: MenuNodeConfig, index: number) => (
+          <MenuNode
+            node={node}
+            key={`${node.label}-${index}`}
+            handleClick={handleClick}
+          />
+        ))}
+      </ul>
+    );
+  }
+);
+MenuNodeList.displayName = "MenuNodeList";
 /**
  * MenuNodeWrapper is a wrapper around the MenuNode component
  * that handles the correct way to interract with the node.
