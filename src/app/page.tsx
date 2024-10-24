@@ -40,7 +40,10 @@ export default function Home() {
   return (
     <div className="min-h-screen p-8 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col h-full w-full">
-        <NavigationMenu config={menuConfig} className="min-w-[420px] w-1/2" />
+        <NavigationMenu
+          config={menuConfig}
+          className="max-w-[420px] min-w-[200px]"
+        />
       </main>
     </div>
   );

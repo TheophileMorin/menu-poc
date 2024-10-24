@@ -106,12 +106,17 @@ export const NavigationMenu = forwardRef<
     setNewNode(null); // Changes are done, reset the marker
   }, [breadcrumbsIndex, newNode]);
 
+  // Navigate to a specific node
   const navigate = useCallback((node: MenuNodeConfig) => {
     setNewNode(node);
   }, []);
+
+  // Navigate back to the previous node
   const navigateBack = useCallback(() => {
     setBreadcrumbsIndex((c) => Math.max(0, c - 1));
   }, []);
+
+  // Set the ref of a list to get their height
   const setListRefs = useCallback(
     (index: number) => (el: HTMLUListElement | null) => {
       listRefs.current[index] = el;
