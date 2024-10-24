@@ -35,27 +35,54 @@ export function NavigationMenu({ content }: { content: MenuItem[] }) {
   // Assert that the content is valid
   menuContentValidator.parse(content);
 
+  const handleClick = (item: MenuItem): void => {
+    console.log(item);
+  };
+
   return (
-    <ul className="w-[26.25rem] flex flex-col">
+    <ul className="w-[420px] flex flex-col">
       {content.map((item: MenuItem, index: number) => (
-        <MenuItem item={item} key={`${item.label}-${index}`} />
+        <MenuItem
+          item={item}
+          key={`${item.label}-${index}`}
+          handleClick={() => handleClick(item)}
+        />
       ))}
     </ul>
   );
 }
 
-function MenuItem({ item }: { item: MenuItem }) {
-  // We assume font-size 12px
-  // We assume line-height 20px
-
-  return (
-    <li className="group h-[48px] w-full flex items-center cursor-pointer p-[14px] bg-[#F7F7F7] text-[#323232] hover:bg-[#D1EDFB] hover:text-[#323232] active:bg-[#AEDFFB] transition-colors duration-200">
+function MenuItem({
+  item,
+  handleClick,
+}: {
+  item: MenuItem;
+  handleClick: () => void;
+}) {
+  const isLink = !!item.href;
+  const content = (
+    <>
       <p className="grow text-[12px] leading-5 line-clamp-1">{item.label}</p>
       {item.children && (
         <ArrowRight
           className="w-3 h-3 text-[#B9B9B9] group-hover:text-[#323C3F]"
           size={12}
         />
+      )}
+    </>
+  );
+  const itemClass =
+    "group h-[48px] w-full flex items-center text-left cursor-pointer p-[14px] bg-[#F7F7F7] text-[#323232] hover:bg-[#D1EDFB] hover:text-[#323232] active:bg-[#AEDFFB] transition-colors duration-200";
+  return (
+    <li>
+      {isLink ? (
+        <a href={item.href} className={itemClass}>
+          {content}
+        </a>
+      ) : (
+        <button className={itemClass} onClick={handleClick}>
+          {content}
+        </button>
       )}
     </li>
   );
