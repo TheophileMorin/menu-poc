@@ -8,11 +8,24 @@ import React, {
   ElementRef,
   forwardRef,
   useCallback,
+  useLayoutEffect,
+  useState,
 } from "react";
 
 export function NavigationMenu({ content }: { content: MenuItem[] }) {
-  // Assert that the content is valid
-  menuContentValidator.parse(content);
+  const [invalidFormat, setInvalidFormat] = useState<boolean>(false);
+
+  // Used useLayoutEffect to prevent rendering an unvalid menu configuration
+  useLayoutEffect(() => {
+    // Assert that the content is valid
+    const menuContent = menuContentValidator.safeParse(content);
+    if (!menuContent.success) {
+      setInvalidFormat(true);
+      console.error(menuContent.error);
+    } else {
+      setInvalidFormat(false);
+    }
+  }, [content]);
 
   const handleClick = useCallback((item: MenuItem): void => {
     console.log(item);
@@ -20,13 +33,17 @@ export function NavigationMenu({ content }: { content: MenuItem[] }) {
 
   return (
     <ul className="w-[420px] flex flex-col">
-      {content.map((item: MenuItem, index: number) => (
-        <MenuItem
-          item={item}
-          key={`${item.label}-${index}`}
-          handleClick={handleClick}
-        />
-      ))}
+      {invalidFormat ? (
+        <li className="text-red-600">Invalid menu configuration :/</li>
+      ) : (
+        content.map((item: MenuItem, index: number) => (
+          <MenuItem
+            item={item}
+            key={`${item.label}-${index}`}
+            handleClick={handleClick}
+          />
+        ))
+      )}
     </ul>
   );
 }
