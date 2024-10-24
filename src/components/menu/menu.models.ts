@@ -2,8 +2,8 @@
  * Recustive structure for defining menu items
  * Items can either have a href or children, but not both
  */
-export type MenuItem = {
+export type MenuNodeConfig = {
   label: string;
   href?: string;
-  subItems?: MenuItem[];
+  subNodes?: MenuNodeConfig[];
 };

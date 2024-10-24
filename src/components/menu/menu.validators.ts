@@ -1,9 +1,9 @@
-import type { MenuItem } from "@/components/menu/menu.models";
+import type { MenuNodeConfig } from "@/components/menu/menu.models";
 import { z } from "zod";
 
 const existingStringValidator = z.string().trim().min(1);
 
-export const menuContentValidator: z.ZodSchema<MenuItem[]> = z.lazy(() =>
+export const menuNodeValidator: z.ZodSchema<MenuNodeConfig[]> = z.lazy(() =>
   z
     .array(
       z.union([
@@ -16,7 +16,7 @@ export const menuContentValidator: z.ZodSchema<MenuItem[]> = z.lazy(() =>
         z
           .object({
             label: existingStringValidator,
-            subItems: menuContentValidator,
+            subNodes: menuNodeValidator,
           })
           .strict(),
       ])
